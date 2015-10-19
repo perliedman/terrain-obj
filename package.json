@@ -1,7 +1,7 @@
 {
-  "name": "hgt2obj",
+  "name": "terrain-obj",
   "version": "1.0.0",
-  "description": "Convert HGT files (typically SRTM elevation data) to Wavefront OBJ 3D models",
+  "description": "Convert elevation data (typically SRTM elevation data, HGT files) to Wavefront OBJ 3D models",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
