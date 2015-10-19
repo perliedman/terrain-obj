@@ -70,6 +70,10 @@ module.exports = function(stream, proj, bounds, tileSet) {
         i = 0,
         lng;
 
+    stream.write('# Created with hgt2obj\n');
+    stream.write('# Projection: ' + proj.defs + '\n');
+    stream.write('# Bounds: ' + JSON.stringify(llbounds) + '\n');
+    stream.write('# Projected bounds: ' + JSON.stringify(bounds) + '\n');
     stream.write('# ' + rows + ' rows, ' + cols + ' cols\n');
     stream.write('# ' + (rows * cols) + ' vertices\n');
 
@@ -96,8 +100,8 @@ module.exports = function(stream, proj, bounds, tileSet) {
             vertices = new Array(rows * cols);
         for (i = 0; i < rows; i++) {
             for (j = 0; j < cols; j++) {
-                var c = proj.inverse(lls[vertex]);
-                vertices[vertex] = [c[0], heights[vertex], c[1]];
+                var c = proj.forward(lls[vertex]);
+                vertices[vertex] = [c[1], heights[vertex], c[0]];
                 vertex++;
             }
         }
