@@ -51,7 +51,7 @@ var neighbourTris = [
 ];
 
 module.exports = function(stream, proj, bounds, tileSet) {
-    var llbounds = bounds.map(function(ll) { return proj.forward(ll); }),
+    var llbounds = bounds.map(function(ll) { return proj.inverse(ll); }),
         sw = llbounds.reduce(function(sw, ll) {
             return ll.map(function(c, i) {
                 return Math.round(Math.min(sw[i], c) * 3600) / 3600;
