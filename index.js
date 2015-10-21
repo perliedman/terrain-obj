@@ -1,4 +1,5 @@
-var async = require('async');
+var async = require('async'),
+    fs = require('fs');
 
 function crossProduct(u, v) {
     var cp = [
@@ -70,12 +71,12 @@ module.exports = function(stream, proj, bounds, tileSet) {
         i = 0,
         lng;
 
-    stream.write('# Created with hgt2obj\n');
+    stream.write(fs.readFileSync(__dirname + '/prolog.txt'));
     stream.write('# Projection: ' + proj.defs + '\n');
     stream.write('# Bounds: ' + JSON.stringify(llbounds) + '\n');
     stream.write('# Projected bounds: ' + JSON.stringify(bounds) + '\n');
     stream.write('# ' + rows + ' rows, ' + cols + ' cols\n');
-    stream.write('# ' + (rows * cols) + ' vertices\n');
+    stream.write('# ' + (rows * cols) + ' vertices\n\n\n');
 
     for (var row = 0; row < rows; row++) {
         lng = sw[0];
