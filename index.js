@@ -1,5 +1,5 @@
-var async = require('async'),
-    fs = require('fs');
+var fs = require('fs'),
+    SyncTileSet = require('node-hgt').SyncTileSet;
 
 function crossProduct(u, v) {
     var cp = [
@@ -51,8 +51,8 @@ var neighbourTris = [
     ]
 ];
 
-module.exports = function(stream, proj, bounds, tileSet) {
-    var llbounds = bounds.map(function(ll) { return proj.inverse(ll); }),
+module.exports = function(stream, proj, bounds, elevationPath) {
+    var llbounds = bounds.map(function(ll) { return proj.forward(ll); }),
         sw = llbounds.reduce(function(sw, ll) {
             return ll.map(function(c, i) {
                 return Math.round(Math.min(sw[i], c) * 3600) / 3600;
@@ -66,10 +66,19 @@ module.exports = function(stream, proj, bounds, tileSet) {
         step = 1 / 3600,
         rows = Math.floor((ne[1] - sw[1]) / step + 1),
         cols = Math.floor((ne[0] - sw[0]) / step + 1),
-        lls = new Array(rows * cols),
         lat = sw[1],
+        tileSet,
         i = 0,
+        j,
+        lls,
         lng;
+
+    if (rows > 0 && cols > 0) {
+        lls = new Array(rows * cols);
+    } else {
+        throw new Error('Invalid bounds: ' + JSON.stringify(bounds) +
+            ' (unprojected: ' + JSON.stringify(llbounds) + ')');
+    }
 
     stream.write(fs.readFileSync(__dirname + '/prolog.txt'));
     stream.write('# Projection: ' + proj.defs + '\n');
@@ -88,21 +97,20 @@ module.exports = function(stream, proj, bounds, tileSet) {
         lat += step;
     }
 
-    async.map(lls, function(ll, cb) {
-        tileSet.getElevation([ll[1], ll[0]], cb);
-    }, function(err, heights) {
-        var i,
-            j;
+    tileSet = new SyncTileSet(elevationPath, [sw[1], sw[0]], [ne[1], ne[0]], function(err) {
         if (err) {
-            return;
+            throw err;
         }
 
+        var i,
+            j;
         var vertex = 0,
             vertices = new Array(rows * cols);
         for (i = 0; i < rows; i++) {
             for (j = 0; j < cols; j++) {
-                var c = proj.forward(lls[vertex]);
-                vertices[vertex] = [c[1], heights[vertex], c[0]];
+                var c = proj.inverse(lls[vertex]);
+                var latLng = [lls[vertex][1], lls[vertex][0]];
+                vertices[vertex] = [c[1], tileSet.getElevation(latLng), c[0]];
                 vertex++;
             }
         }
@@ -140,5 +148,4 @@ module.exports = function(stream, proj, bounds, tileSet) {
             }
         }
     });
-
 };
